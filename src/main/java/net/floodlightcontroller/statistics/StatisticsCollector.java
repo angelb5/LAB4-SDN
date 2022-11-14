@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.projectfloodlight.openflow.protocol.*;
 import org.projectfloodlight.openflow.protocol.match.Match;
+import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.protocol.ver13.OFMeterSerializerVer13;
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.projectfloodlight.openflow.types.OFPort;
@@ -148,15 +149,17 @@ public class StatisticsCollector implements IFloodlightModule, IStatisticsServic
 
 		@Override
 		public void run() {
-			log.info("Flowstats");
 			Map<DatapathId, List<OFStatsReply>> replies = getSwitchStatistics(switchService.getAllSwitchDpids(), OFStatsType.FLOW);
 			for (Entry<DatapathId, List<OFStatsReply>> e : replies.entrySet()) {
 				for (OFStatsReply r : e.getValue()) {
 					OFFlowStatsReply fsr = (OFFlowStatsReply) r;
 					for (OFFlowStatsEntry fse : fsr.getEntries()) {
-						log.info("Flow statistics: \nSwitch"+e.getKey()+"\nCookie: "+fse.getCookie()+
-								"\nMatch: "+fse.getMatch()+"\nActions: "+fse.getActions()+
-								"\nPacketCount: "+fse.getPacketCount()+"\nByteCount: "+fse.getByteCount());
+						log.info("Flow Statistics:");
+						log.info("Switch: "+e.getKey());
+						log.info("Cookie: "+fse.getCookie());
+						log.info("Match: "+fse.getMatch());
+						log.info("Packet Count: " + fse.getPacketCount().getValue());
+						log.info("Byte Count: " + fse.getByteCount().getValue());
 					}
 				}
 			}
@@ -309,7 +312,7 @@ public class StatisticsCollector implements IFloodlightModule, IStatisticsServic
 	 * Stop all stats threads.
 	 */
 	private void stopStatisticsCollection() {
-		if (!portStatsCollector.cancel(false) && !flowStatsCollector.cancel(false)) {
+		if (!portStatsCollector.cancel(false)) {
 			log.error("Could not cancel port stats thread");
 		} else {
 			log.warn("Statistics collection thread(s) stopped");
